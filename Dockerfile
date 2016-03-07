@@ -16,11 +16,7 @@ ENV APPSERVER_SOURCE_VERSION 1.1.1-alpha7
 
 # install packages
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install supervisor wget php5 php5-curl ant git -y
-
-# install composer
-RUN cd /usr/local/bin && php -r "readfile('https://getcomposer.org/installer');" | php
-RUN ln -s /usr/local/bin/composer.phar /usr/local/bin/composer
+    DEBIAN_FRONTEND=noninteractive apt-get install supervisor wget git -y
 
 ################################################################################
 
@@ -37,6 +33,13 @@ RUN wget -O /tmp/appserver-runtime.deb \
 RUN dpkg -i /tmp/appserver-runtime.deb; exit 0
 RUN apt-get install -yf
 RUN rm -f /tmp/appserver-runtime.deb
+RUN ln -s /opt/appserver/bin/php /usr/local/bin/php
+
+################################################################################
+
+# install composer
+RUN cd /usr/local/bin && php -r "readfile('https://getcomposer.org/installer');" | php
+RUN ln -s /usr/local/bin/composer.phar /usr/local/bin/composer
 
 ################################################################################
 
@@ -47,7 +50,7 @@ RUN cd /root && wget https://github.com/appserver-io/appserver/archive/${APPSERV
     tar -xzf ${APPSERVER_SOURCE_VERSION}.tar.gz && cd appserver-${APPSERVER_SOURCE_VERSION} && \
 
     # install dependencies using composer
-    composer install --no-interaction --prefer-source && \
+    composer install --prefer-dist --no-dev --no-interaction --optimize-autoloader && \
 
     # modify user-rights in configuration
     sed -i "s/www-data/root/g" etc/appserver/appserver.xml && \
